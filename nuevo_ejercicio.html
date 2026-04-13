@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GymTracker - Nuevo Ejercicio</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #FFFFFF; color: #000000; }
+        .navbar-custom { background-color: #000000; padding: 10px 0; }
+        .navbar-custom .navbar-brand { color: #FFFFFF; font-weight: bold; display: flex; align-items: center; }
+        .logo-tfg { height: 50px; width: auto; margin-right: 15px; }
+        .form-control { border: 2px solid #666666; border-radius: 0; }
+        .btn-custom { background-color: #000000; color: #FFFFFF; border-radius: 0; width: 100%; }
+        .btn-custom:hover { background-color: #333333; color: #FFFFFF; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-custom mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <img src="logo.png" alt="Logo" class="logo-tfg"> GYMTRACKER
+            </a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <h2 class="fw-bold mb-4 text-uppercase">Añadir Nuevo Ejercicio</h2>
+                
+                <form id="form-ejercicio">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Nombre del Ejercicio</label>
+                        <input type="text" class="form-control" id="nombre" required placeholder="Ej: Peso Muerto">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Grupo Muscular</label>
+                        <select class="form-control" id="grupoMuscular" required>
+                            <option value="">Selecciona uno...</option>
+                            <option value="Pecho">Pecho</option>
+                            <option value="Espalda">Espalda</option>
+                            <option value="Piernas">Piernas</option>
+                            <option value="Hombros">Hombros</option>
+                            <option value="Brazos">Brazos</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Descripción</label>
+                        <textarea class="form-control" id="descripcion" rows="3" placeholder="Breve explicación técnica..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-custom py-2 fw-bold">GUARDAR EN CATÁLOGO</button>
+                </form>
+                
+                <div id="mensaje" class="mt-3 alert d-none"></div>
+                <a href="index.html" class="d-block text-center mt-4 text-dark fw-bold">← Volver al catálogo</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('form-ejercicio').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const mensajeDiv = document.getElementById('mensaje');
+            
+            const datos = {
+                nombre: document.getElementById('nombre').value,
+                grupoMuscular: document.getElementById('grupoMuscular').value,
+                descripcion: document.getElementById('descripcion').value
+            };
+
+            fetch('api/crear_ejercicio.php', {
+                method: 'POST',
+                body: JSON.stringify(datos),
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                mensajeDiv.classList.remove('d-none', 'alert-danger', 'alert-success');
+                mensajeDiv.classList.add('alert-success');
+                mensajeDiv.textContent = '✅ Ejercicio guardado correctamente.';
+                document.getElementById('form-ejercicio').reset();
+            })
+            .catch(err => {
+                mensajeDiv.classList.remove('d-none', 'alert-success');
+                mensajeDiv.classList.add('alert-danger');
+                mensajeDiv.textContent = '❌ Error al guardar. Revisa la conexión.';
+            });
+        });
+    </script>
+</body>
+</html>

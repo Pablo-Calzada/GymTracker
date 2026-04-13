@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>GymTracker - Editar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #FFFFFF; }
+        .navbar-custom { background-color: #000000; padding: 10px 0; }
+        .form-control { border: 2px solid #666666; border-radius: 0; }
+        .btn-custom { background-color: #000000; color: #FFFFFF; border-radius: 0; width: 100%; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-custom mb-4"><div class="container"><span class="text-white fw-bold">GYMTRACKER / MODO EDICIÓN</span></div></nav>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <h3 class="fw-bold mb-4">EDITAR DETALLES</h3>
+                <form id="form-editar">
+                    <input type="hidden" id="ejercicio-id">
+                    <div class="mb-3">
+                        <label class="fw-bold">Nombre</label>
+                        <input type="text" class="form-control" id="nombre" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="fw-bold">Músculo</label>
+                        <input type="text" class="form-control" id="grupo" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="fw-bold">Descripción</label>
+                        <textarea class="form-control" id="desc" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-custom py-2">GUARDAR CAMBIOS</button>
+                </form>
+                <a href="index.html" class="d-block text-center mt-3 text-dark small text-decoration-none">← Cancelar y volver</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Al cargar, recuperamos el ID de la URL y buscamos sus datos
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get('id');
+            
+            fetch('api/ejercicios.php') // Buscamos en la lista el que coincide
+                .then(res => res.json())
+                .then(datos => {
+                    const ej = datos.data.find(e => e.id == id);
+                    if(ej) {
+                        document.getElementById('ejercicio-id').value = ej.id;
+                        document.getElementById('nombre').value = ej.nombre;
+                        document.getElementById('grupo').value = ej.grupoMuscular;
+                        document.getElementById('desc').value = ej.descripcion;
+                    }
+                });
+        });
+
+        document.getElementById('form-editar').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const updateData = {
+                id: document.getElementById('ejercicio-id').value,
+                nombre: document.getElementById('nombre').value,
+                grupoMuscular: document.getElementById('grupo').value,
+                descripcion: document.getElementById('desc').value
+            };
+
+            fetch('api/actualizar_ejercicio.php', {
+                method: 'POST',
+                body: JSON.stringify(updateData),
+                headers: { 'Content-Type': 'application/json' }
+            }).then(() => window.location.href = 'index.html');
+        });
+    </script>
+</body>
+</html>

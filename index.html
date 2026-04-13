@@ -6,32 +6,26 @@
     <title>GymTracker - Inicio</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        /* Paleta corporativa del Entregable 3 */
+        /* Estilos corporativos TFG */
         body { background-color: #FFFFFF; color: #000000; }
         .navbar-custom { background-color: #000000; padding: 10px 0; }
-        .navbar-custom .navbar-brand { 
-            color: #FFFFFF; 
-            font-weight: bold; 
-            display: flex; 
-            align-items: center; 
-        }
-        .logo-tfg {
-            height: 50px;
-            width: auto;
-            margin-right: 15px;
-        }
-        .card-custom { border: 2px solid #666666; border-radius: 0; }
-        .btn-custom { background-color: #000000; color: #FFFFFF; border-radius: 0; }
+        .navbar-custom .navbar-brand { color: #FFFFFF; font-weight: bold; display: flex; align-items: center; }
+        .logo-tfg { height: 50px; width: auto; margin-right: 15px; }
+        .card-custom { border: 2px solid #666666; border-radius: 0; position: relative; }
+        .btn-custom { background-color: #000000; color: #FFFFFF; border-radius: 0; text-decoration: none; }
         .btn-custom:hover { background-color: #333333; color: #FFFFFF; }
+        
+        /* Botones de acción en tarjetas */
+        .btn-delete { background-color: #dc3545; color: white; border: none; padding: 5px 10px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+        .btn-edit { background-color: #6c757d; color: white; border: none; padding: 5px 10px; font-size: 11px; font-weight: bold; text-transform: uppercase; text-decoration: none; margin-right: 5px; }
+        .btn-edit:hover { background-color: #495057; color: white; }
     </style>
 </head>
 <body>
-
     <nav class="navbar navbar-custom mb-4">
         <div class="container">
-            <a class="navbar-brand" href="#">
-                <img src="logo.png" alt="GymTracker Logo" class="logo-tfg">
-                GYMTRACKER
+            <a class="navbar-brand" href="index.html">
+                <img src="logo.png" alt="Logo" class="logo-tfg"> GYMTRACKER
             </a>
         </div>
     </nav>
@@ -39,57 +33,72 @@
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="fw-bold">Catálogo de Ejercicios</h2>
-            <button class="btn btn-custom px-4">Registrar Entrenamiento</button>
+            <a href="nuevo_ejercicio.html" class="btn btn-custom px-4">Añadir Ejercicio</a>
         </div>
 
         <div id="cargando" class="text-center my-5">
-            <div class="spinner-border text-dark" role="status">
-                <span class="visually-hidden">Cargando...</span>
-            </div>
-            <p class="mt-2 text-secondary">Conectando con la base de datos de ejercicios...</p>
+            <div class="spinner-border text-dark" role="status"></div>
+            <p class="mt-2 text-secondary">Actualizando catálogo...</p>
         </div>
 
-        <div id="mensaje-error" class="alert alert-danger d-none" role="alert"></div>
-
-        <div class="row" id="contenedor-ejercicios">
-            </div>
+        <div class="row" id="contenedor-ejercicios"></div>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        // Función para cargar los ejercicios (Read)
+        function cargarEjercicios() {
             const contenedor = document.getElementById('contenedor-ejercicios');
             const cargando = document.getElementById('cargando');
-            const mensajeError = document.getElementById('mensaje-error');
+            contenedor.innerHTML = '';
+            cargando.classList.remove('d-none');
 
             fetch('api/ejercicios.php')
-                .then(response => {
-                    if (!response.ok) throw new Error('Error en la conexión');
-                    return response.json();
-                })
+                .then(res => res.json())
                 .then(datos => {
                     cargando.classList.add('d-none');
-                    datos.data.forEach(ejercicio => {
-                        const tarjetaHTML = `
-                            <div class="col-md-6 mb-4">
-                                <div class="card card-custom h-100 p-3 shadow-sm">
-                                    <div class="card-body">
-                                        <h5 class="card-title fw-bold text-uppercase">${ejercicio.nombre}</h5>
-                                        <h6 class="card-subtitle mb-3 text-muted">Músculo: ${ejercicio.grupoMuscular}</h6>
-                                        <p class="card-text text-secondary">${ejercicio.descripcion}</p>
+                    if(datos.data) {
+                        datos.data.forEach(ej => {
+                            contenedor.innerHTML += `
+                                <div class="col-md-6 mb-4">
+                                    <div class="card card-custom h-100 p-3 shadow-sm">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <h5 class="card-title fw-bold text-uppercase mb-0">${ej.nombre}</h5>
+                                                <div class="d-flex">
+                                                    <a href="editar_ejercicio.html?id=${ej.id}" class="btn-edit">EDITAR</a>
+                                                    <button onclick="eliminarEjercicio(${ej.id})" class="btn-delete">BORRAR</button>
+                                                </div>
+                                            </div>
+                                            <h6 class="card-subtitle mb-3 text-muted">Músculo: ${ej.grupoMuscular}</h6>
+                                            <p class="card-text text-secondary small">${ej.descripcion || 'Sin descripción disponible.'}</p>
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
-                        `;
-                        contenedor.innerHTML += tarjetaHTML;
-                    });
+                                </div>`;
+                        });
+                    }
                 })
-                .catch(error => {
+                .catch(err => {
                     cargando.classList.add('d-none');
-                    mensajeError.textContent = '❌ No se pudo conectar con el servidor. Revisa XAMPP.';
-                    mensajeError.classList.remove('d-none');
-                    console.error(error);
+                    console.error("Error al cargar:", err);
                 });
-        });
+        }
+
+        // Función para eliminar (Delete)
+        function eliminarEjercicio(id) {
+            if(confirm('¿Estás seguro de que deseas eliminar este ejercicio permanentemente?')) {
+                fetch('api/eliminar_ejercicio.php', {
+                    method: 'DELETE',
+                    body: JSON.stringify({ id: id }),
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                .then(res => {
+                    if(res.ok) cargarEjercicios(); // Recargar la lista tras borrar
+                })
+                .catch(err => alert("Error al eliminar el ejercicio."));
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', cargarEjercicios);
     </script>
 </body>
 </html>
